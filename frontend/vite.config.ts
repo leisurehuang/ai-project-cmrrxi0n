@@ -1,8 +1,17 @@
 import { defineConfig } from 'vite';
-import uni from '@dcloudio/vite-plugin-uni';
+import react from '@vitejs/plugin-react';
 
-// Vite 配置文件
-// uni-app 官方推荐使用 @dcloudio/vite-plugin-uni 插件进行多端编译
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [uni()],
+  plugins: [react()],
+  server: {
+    port: 5173, // 前端开发服务器端口
+    proxy: {
+      // 代理带有 /api 前缀的请求到后端服务
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
+  },
 });
