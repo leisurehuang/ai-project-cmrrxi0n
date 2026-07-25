@@ -1,0 +1,140 @@
+// ===================================================================
+// 儿童习惯养成与积分兑换系统 - Prisma Schema
+// 引擎：PostgreSQL
+// 设计原则：严格对齐方案 dataModel，UUID 主键，乐观锁防并发超扣
+// ===================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// 枚举定义
+// ============================================================
+
+/// 用户角色
+enum Role {
+  PARENT // 家长
+  CHILD  // 儿童
+}
+
+/// 任务执行频次
+enum Frequency {
+  DAILY  // 每日
+  WEEKLY // 每周
+}
+
+/// 打卡审核状态
+enum CheckInStatus {
+  PENDING  // 待审核
+  APPROVED // 已通过
+  REJECTED // 已驳回
+}
+
+// ============================================================
+// 实体定义
+// ============================================================
+
+/// 用户实体：家长与儿童统一存储，通过 role 区分
+/// 一个家长 User(1) 可对应多个儿童 User(N)
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  openid    String   @unique
+  role      Role     @default(PARENT)
+  parentId  String?  @map("parent_id") @db.Uuid
+  nickname  String
+  avatarUrl String?  @map("avatar_url")
+
+  // 自关联：家长 -> 儿童（一对多）
+  parent   User?           @relation("ParentChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children User[]          @relation("ParentChildren")
+
+  // 关联资源
+  wallet   PointWallet?
+  tasks    Task[]
+  checkins CheckInRecord[]
+  rewards  RewardItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([openid])
+  @@map("users")
+}
+
+/// 任务实体：家长配置的日常任务，属于家长，产生多条打卡记录
+model Task {
+  id           String    @id @default(uuid()) @db.Uuid
+  parentId     String    @map("parent_id") @db.Uuid
+  title        String
+  frequency    Frequency @default(DAILY)
+  rewardPoints Int       @map("reward_points")
+  isActive     Boolean   @default(true) @map("is_active")
+
+  parent   User             @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  checkins CheckInRecord[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([parentId, isActive])
+  @@map("tasks")
+}
+
+/// 打卡记录：儿童每次提交任务打卡生成一条流水
+model CheckInRecord {
+  id       String        @id @default(uuid()) @db.Uuid
+  childId  String        @map("child_id") @db.Uuid
+  taskId   String        @map("task_id") @db.Uuid
+  status   CheckInStatus @default(PENDING)
+  photoUrl String?       @map("photo_url")
+
+  child User @relation(fields: [childId], references: [id], onDelete: Cascade)
+  task  Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([childId, status, createdAt])
+  @@map("checkin_records")
+}
+
+/// 奖品库：家长配置的可兑换奖品
+model RewardItem {
+  id         String  @id @default(uuid()) @db.Uuid
+  parentId   String  @map("parent_id") @db.Uuid
+  name       String
+  imageUrl   String? @map("image_url")
+  costPoints Int     @map("cost_points")
+  stock      Int     @default(0)
+
+  parent User @relation(fields: [parentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([parentId])
+  @@map("reward_items")
+}
+
+/// 积分钱包与成长值：每个儿童一对一
+/// version 字段实现乐观锁，防止并发场景下积分超扣（兑换/审核结算时必用）
+model PointWallet {
+  childId     String @id @map("child_id") @db.Uuid
+  balance     Int    @default(0)                     // 可用积分余额
+  growthValue Int    @default(0) @map("growth_value") // 累计成长值（不可削减）
+  streakDays  Int    @default(0) @map("streak_days")  // 连续打卡天数
+  version     Int    @default(0)                     // 乐观锁版本号
+
+  child User @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("point_wallets")
+}
