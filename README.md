@@ -1,6 +1,6 @@
 # ai-project-cmrrxi0n
 
-> 我想给小朋友开发一个管理积分和兑换玩具的系统。 - AI-generated project (50 files)
+> 我想实现一个魂斗罗打蜜蜂的小游戏 - AI-generated project (29 files)
 
 ## 🤖 项目说明
 
@@ -10,61 +10,38 @@
 
 - TypeScript
 - Docker Compose
-- Redis
-- JavaScript/React
 
 ## 📁 项目结构
 
 ```
   .claude/skills/implement/SKILL.md
   backend/.env.example
-  backend/.eslintrc.js
-  backend/.gitignore
-  backend/.prettierrc
   backend/Dockerfile
-  backend/README.md
   backend/docker-compose.yml
-  backend/nest-cli.json
   backend/package.json
   backend/prisma/schema.prisma
-  backend/src/app.controller.ts
-  backend/src/app.module.ts
-  backend/src/common/config/app.config.ts
-  backend/src/common/decorators/current-user.decorator.ts
-  backend/src/common/filters/all-exceptions.filter.ts
-  backend/src/common/guards/jwt-auth.guard.ts
-  backend/src/common/interceptors/transform.interceptor.ts
-  backend/src/common/middleware/request-logger.middleware.ts
-  backend/src/main.ts
-  backend/src/modules/tasks/dto/create-task.dto.ts
-  backend/src/modules/tasks/dto/task.vo.ts
-  backend/src/modules/tasks/tasks.controller.ts
-  backend/src/modules/tasks/tasks.module.ts
-  backend/src/modules/tasks/tasks.service.ts
-  backend/src/prisma/prisma.module.ts
-  backend/src/prisma/prisma.service.ts
-  backend/src/redis/redis.module.ts
-  backend/src/redis/redis.service.ts
-  backend/tsconfig.build.json
+  backend/src/app.ts
+  backend/src/config/index.ts
+  backend/src/db/prisma.ts
+  backend/src/index.ts
+  backend/src/middlewares/error.middleware.ts
+  backend/src/middlewares/logger.middleware.ts
+  backend/src/modules/auth/auth.controller.ts
+  backend/src/modules/auth/auth.routes.ts
+  backend/src/modules/auth/auth.service.ts
+  backend/src/modules/player/player.service.ts
   backend/tsconfig.json
   frontend/.env.example
-  frontend/README.md
   frontend/index.html
   frontend/package.json
-  frontend/postcss.config.js
-  frontend/src/App.vue
-  frontend/src/api/request.ts
-  frontend/src/api/tasks.api.ts
-  frontend/src/components/BaseLayout.vue
-  frontend/src/main.ts
-  frontend/src/manifest.json
-  frontend/src/pages.json
-  frontend/src/pages/index/index.vue
-  frontend/src/pages/tasks/index.vue
-  frontend/src/style.css
-  frontend/src/uni.scss
-  frontend/tailwind.config.js
+  frontend/src/App.tsx
+  frontend/src/api/auth.api.ts
+  frontend/src/api/client.ts
+  frontend/src/layouts/MainLayout.tsx
+  frontend/src/main.tsx
+  frontend/src/pages/LoginPage.tsx
   frontend/tsconfig.json
+  frontend/tsconfig.node.json
   frontend/vite.config.ts
 ```
 
