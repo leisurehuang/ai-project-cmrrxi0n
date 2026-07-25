@@ -1,34 +1,25 @@
-# ===== 阶段 1：依赖安装与构建 =====
-FROM node:20-alpine AS builder
+# 使用 Node.js 官方轻量级镜像
+FROM node:18-alpine
 
+# 设置工作目录
 WORKDIR /app
 
-# 利用 Docker 缓存：先拷贝依赖描述
+# 复制 package.json 和 package-lock.json
 COPY package*.json ./
+
+# 安装生产环境依赖
+RUN npm install --only=production
+
+# 复制 Prisma schema 并生成 Client
 COPY prisma ./prisma/
-
-RUN npm ci
-
-COPY . .
-
-# 生成 Prisma Client 并编译 TypeScript
 RUN npx prisma generate
+
+# 复制源代码并编译 TypeScript
+COPY . .
 RUN npm run build
 
-# ===== 阶段 2：运行时镜像 =====
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-# 仅拷贝运行所需文件
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/package.json ./
-
+# 暴露服务端口
 EXPOSE 3000
 
-# 生产部署前应执行：npx prisma migrate deploy
-CMD ["node", "dist/main.js"]
+# 启动服务
+CMD ["npm", "start"]
